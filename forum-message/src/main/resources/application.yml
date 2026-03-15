@@ -1,0 +1,18 @@
+# 本地配置 - 用于连接Nacos配置中心
+# 业务配置已迁移至Nacos，请查看 application-nacos.yml
+
+server:
+  port: 8083
+
+spring:
+  application:
+    name: forum-message
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: forum-dev
+      config:
+        server-addr: localhost:8848
+        namespace: forum-dev
+        file-extension: yaml
