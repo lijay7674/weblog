@@ -6,10 +6,11 @@ spring:
     name: forum-gateway
   cloud:
     nacos:
+      server-addr: localhost:8848
       discovery:
-        server-addr: localhost:8848
         namespace: forum-dev
       config:
-        server-addr: localhost:8848
         namespace: forum-dev
         file-extension: yaml
+  config:
+    import: nacos:forum-gateway.yaml
