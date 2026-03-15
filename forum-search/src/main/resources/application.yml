@@ -1,6 +1,3 @@
-# 本地配置 - 用于连接Nacos配置中心
-# 业务配置已迁移至Nacos，请查看 application-nacos.yml
-
 server:
   port: 8084
 
