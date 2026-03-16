@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.forum.post.mapper.LikeRecordMapper">
+
+    <!-- 批量插入点赞记录（忽略重复） -->
+    <insert id="batchInsertOrIgnore">
+        INSERT IGNORE INTO like_record (user_id, target_id, target_type, create_time)
+        VALUES
+        <foreach collection="records" item="record" separator=",">
+            (#{record.userId}, #{record.targetId}, #{record.targetType}, NOW())
+        </foreach>
+    </insert>
+
+    <!-- 根据复合键批量删除 -->
+    <delete id="batchDeleteByCompositeKey">
+        DELETE FROM like_record
+        WHERE target_type = #{targetType}
+        AND user_id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        AND target_id IN
+        <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+            #{targetId}
+        </foreach>
+    </delete>
+
+</mapper>

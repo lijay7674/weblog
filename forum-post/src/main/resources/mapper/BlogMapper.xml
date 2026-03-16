@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.forum.post.mapper.BlogMapper">
+
+    <!-- 增加浏览量 -->
+    <update id="incrementViewCount">
+        UPDATE blog 
+        SET view_count = view_count + #{increment}
+        WHERE id = #{blogId}
+    </update>
+
+    <!-- 增加点赞数 -->
+    <update id="incrementLikeCount">
+        UPDATE blog 
+        SET like_count = like_count + #{increment}
+        WHERE id = #{blogId}
+    </update>
+
+    <!-- 增加评论数 -->
+    <update id="incrementCommentCount">
+        UPDATE blog 
+        SET comment_count = comment_count + #{increment}
+        WHERE id = #{blogId}
+    </update>
+
+</mapper>

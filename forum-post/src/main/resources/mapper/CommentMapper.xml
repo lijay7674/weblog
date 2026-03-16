@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.forum.post.mapper.CommentMapper">
+
+    <!-- 增加点赞数 -->
+    <update id="incrementLikeCount">
+        UPDATE comment 
+        SET like_count = like_count + #{increment}
+        WHERE id = #{commentId}
+    </update>
+
+</mapper>
