@@ -6,7 +6,7 @@ CREATE TABLE `like_record` (
                                `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
                                PRIMARY KEY (`id`),
                                UNIQUE KEY `uk_user_target` (`user_id`,`target_id`,`target_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='点赞记录表'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='点赞记录表';
 
 -- 1. 目标ID+类型索引（查询某博客/评论的点赞数）
 -- 为什么：统计点赞数时需要根据 target_id + target_type 查询

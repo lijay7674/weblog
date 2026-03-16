@@ -9,7 +9,7 @@ CREATE TABLE `comment` (
                            `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
                            PRIMARY KEY (`id`),
                            KEY `idx_blog_id` (`blog_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='评论表'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='评论表';
 
 -- 1. 博客ID+父ID复合索引（查询某博客的评论列表）
 -- 为什么：评论列表查询需要过滤 blog_id 和 parent_id（区分一级/二级评论）
