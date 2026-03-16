@@ -23,7 +23,7 @@
         <module>forum-common</module>
         <module>forum-gateway</module>
         <module>forum-auth</module>
-        <module>forum-service</module>
+        <module>forum-post</module>
         <module>forum-message</module>
         <module>forum-search</module>
     </modules>

@@ -1,6 +1,5 @@
 server:
   port: 8081
-
 spring:
   application:
     name: forum-auth
@@ -14,4 +13,3 @@ spring:
         file-extension: yaml
   config:
     import: nacos:forum-auth.yaml
-

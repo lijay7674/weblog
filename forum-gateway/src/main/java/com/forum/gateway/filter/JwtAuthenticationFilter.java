@@ -1,5 +1,6 @@
 package com.forum.gateway.filter;
 
+import com.forum.gateway.config.WhitelistProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -38,15 +39,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     @Value("${jwt.prefix}")
     private String prefix;
 
-    @Value("${gateway.whitelist}")
-    private List<String> whitelist;
-
+    private final WhitelistProperties whitelistProperties;
     private final ReactiveStringRedisTemplate reactiveRedisTemplate;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     private static final String ACCESS_TOKEN_PREFIX = "token:access:";
 
-    public JwtAuthenticationFilter(ReactiveStringRedisTemplate reactiveRedisTemplate) {
+    public JwtAuthenticationFilter(WhitelistProperties whitelistProperties, ReactiveStringRedisTemplate reactiveRedisTemplate) {
+        this.whitelistProperties = whitelistProperties;
         this.reactiveRedisTemplate = reactiveRedisTemplate;
     }
 
@@ -114,6 +114,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isWhitelisted(String path) {
+        List<String> whitelist = whitelistProperties.getWhitelist();
+        if (whitelist == null) {
+            return false;
+        }
         return whitelist.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 

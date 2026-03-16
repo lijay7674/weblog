@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: forum-service
+    name: forum-post
   cloud:
     nacos:
       server-addr: localhost:8848
@@ -13,4 +13,4 @@ spring:
         namespace: forum-dev
         file-extension: yaml
   config:
-    import: nacos:forum-service.yaml
+    import: nacos:forum-post.yaml

@@ -11,9 +11,9 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     
-    <artifactId>forum-service</artifactId>
+    <artifactId>forum-post</artifactId>
     <packaging>jar</packaging>
-    <description>论坛核心模块 - 博客、评论、点赞</description>
+    <description>博客文章模块 - 文章发布、评论、点赞</description>
     
     <dependencies>
         <!-- 公共模块 -->
