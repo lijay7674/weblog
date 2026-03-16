@@ -37,4 +37,11 @@ public interface UserService {
      * @return 用户实体
      */
     User getById(Long userId);
+
+    /**
+     * 刷新 Token
+     * @param refreshToken Refresh Token
+     * @return 新的登录响应（包含新的 Access Token）
+     */
+    LoginResponse refreshToken(String refreshToken);
 }

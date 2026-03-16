@@ -115,6 +115,40 @@ public class JwtUtil {
     }
 
     /**
+     * 获取 Token 的剩余过期时间（毫秒）
+     * @param token JWT Token
+     * @return 剩余过期时间（毫秒），如果 token 无效或已过期返回 0
+     */
+    public long getRemainingExpiration(String token) {
+        try {
+            Claims claims = parseToken(token);
+            if (claims == null) {
+                return 0;
+            }
+            Date expiration = claims.getExpiration();
+            Date now = new Date();
+            long remaining = expiration.getTime() - now.getTime();
+            return remaining > 0 ? remaining : 0;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    /**
+     * 获取 Access Token 的默认过期时间（毫秒）
+     */
+    public long getAccessTokenExpiration() {
+        return expiration;
+    }
+
+    /**
+     * 获取 Refresh Token 的默认过期时间（毫秒）
+     */
+    public long getRefreshTokenExpiration() {
+        return refreshExpiration;
+    }
+
+    /**
      * 解析 Token 获取 Claims
      */
     private Claims parseToken(String token) {

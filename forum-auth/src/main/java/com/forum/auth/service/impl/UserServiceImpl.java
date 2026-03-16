@@ -8,6 +8,7 @@ import com.forum.auth.entity.User;
 import com.forum.auth.mapper.UserMapper;
 import com.forum.auth.service.UserService;
 import com.forum.common.exception.BusinessException;
+import com.forum.common.service.TokenService;
 import com.forum.common.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
     @Value("${jwt.expiration}")
     private Long tokenExpiration;
@@ -79,13 +81,19 @@ public class UserServiceImpl implements UserService {
         String accessToken = jwtUtil.generateToken(user.getId(), user.getUsername());
         String refreshToken = jwtUtil.generateRefreshToken(user.getId());
 
-        // 5. 构建响应
+        // 5. 将 Token 存储到 Redis（实现登录状态管理）
+        long accessTokenExpiration = jwtUtil.getAccessTokenExpiration();
+        long refreshTokenExpiration = jwtUtil.getRefreshTokenExpiration();
+        tokenService.storeAccessToken(user.getId(), accessToken, accessTokenExpiration);
+        tokenService.storeRefreshToken(user.getId(), refreshToken, refreshTokenExpiration);
+
+        // 6. 构建响应
         LoginResponse response = new LoginResponse();
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshToken);
         response.setExpiresIn(tokenExpiration);
 
-        // 6. 构建用户信息
+        // 7. 构建用户信息
         LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo();
         userInfo.setId(user.getId());
         userInfo.setUsername(user.getUsername());
@@ -109,5 +117,59 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getById(Long userId) {
         return userMapper.selectById(userId);
+    }
+
+    @Override
+    public LoginResponse refreshToken(String refreshToken) {
+        // 1. 验证 Refresh Token 是否有效
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new BusinessException("无效的 Refresh Token");
+        }
+
+        // 2. 从 Refresh Token 中获取用户ID
+        Long userId = jwtUtil.getUserId(refreshToken);
+        if (userId == null) {
+            throw new BusinessException("无效的 Refresh Token");
+        }
+
+        // 3. 验证 Refresh Token 是否在 Redis 中有效（未被退出登录）
+        if (!tokenService.validateRefreshToken(userId, refreshToken)) {
+            throw new BusinessException("Refresh Token 已失效，请重新登录");
+        }
+
+        // 4. 查询用户信息
+        User user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 5. 检查用户状态
+        if (user.getStatus() == 0) {
+            throw new BusinessException("账号已被禁用");
+        }
+
+        // 6. 生成新的 Access Token
+        String newAccessToken = jwtUtil.generateToken(user.getId(), user.getUsername());
+        long accessTokenExpiration = jwtUtil.getAccessTokenExpiration();
+        
+        // 7. 更新 Redis 中的 Access Token
+        tokenService.refreshAccessToken(userId, newAccessToken, accessTokenExpiration);
+
+        // 8. 构建响应
+        LoginResponse response = new LoginResponse();
+        response.setAccessToken(newAccessToken);
+        response.setRefreshToken(refreshToken); // Refresh Token 保持不变
+        response.setExpiresIn(tokenExpiration);
+
+        LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo();
+        userInfo.setId(user.getId());
+        userInfo.setUsername(user.getUsername());
+        userInfo.setNickname(user.getNickname());
+        userInfo.setAvatar(user.getAvatar());
+        userInfo.setEmail(user.getEmail());
+        response.setUser(userInfo);
+
+        log.info("Token 刷新成功, userId: {}", userId);
+        return response;
     }
 }
