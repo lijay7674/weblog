@@ -16,6 +16,22 @@
     <description>网关模块 - 路由、鉴权、限流</description>
     
     <dependencies>
+        <!-- 公共模块 (排除 web，因为 gateway 使用 webflux) -->
+        <dependency>
+            <groupId>com.forum</groupId>
+            <artifactId>forum-common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.github.xiaoymin</groupId>
+                    <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
         <!-- Spring Cloud Gateway (不能引入spring-boot-starter-web) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

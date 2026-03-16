@@ -1,6 +1,6 @@
-package com.forum.common.service.impl;
+package com.forum.auth.service.impl;
 
-import com.forum.common.service.TokenService;
+import com.forum.auth.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;

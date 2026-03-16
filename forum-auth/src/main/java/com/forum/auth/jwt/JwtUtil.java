@@ -1,4 +1,4 @@
-package com.forum.common.utils;
+package com.forum.auth.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -150,8 +150,10 @@ public class JwtUtil {
 
     /**
      * 解析 Token 获取 Claims
+     * @param token JWT Token
+     * @return Claims 对象，解析失败返回 null
      */
-    private Claims parseToken(String token) {
+    public Claims parseToken(String token) {
         try {
             return Jwts.parser()
                     .verifyWith(getSecretKey())

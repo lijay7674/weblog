@@ -1,4 +1,4 @@
-package com.forum.common.service;
+package com.forum.auth.service;
 
 /**
  * Token 服务接口

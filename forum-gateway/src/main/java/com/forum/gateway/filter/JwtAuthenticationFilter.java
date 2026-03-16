@@ -45,7 +45,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private static final String ACCESS_TOKEN_PREFIX = "token:access:";
 
-    public JwtAuthenticationFilter(WhitelistProperties whitelistProperties, ReactiveStringRedisTemplate reactiveRedisTemplate) {
+    public JwtAuthenticationFilter(WhitelistProperties whitelistProperties, 
+                                   ReactiveStringRedisTemplate reactiveRedisTemplate) {
         this.whitelistProperties = whitelistProperties;
         this.reactiveRedisTemplate = reactiveRedisTemplate;
     }
@@ -70,7 +71,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         final String token = authHeader.substring(prefix.length());
         
         try {
-            // 1. 验证 Token 签名
+            // 1. 验证 Token 签名并解析
             SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
             Claims claims = Jwts.parser()
                     .verifyWith(key)
