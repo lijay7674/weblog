@@ -56,6 +56,11 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getPath().value();
 
+        // 放行CORS预检请求(OPTIONS方法)
+        if (request.getMethod().name().equals("OPTIONS")) {
+            return chain.filter(exchange);
+        }
+
         // 白名单路径直接放行
         if (isWhitelisted(path)) {
             return chain.filter(exchange);

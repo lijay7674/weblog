@@ -1,6 +1,8 @@
+DROP TABLE IF EXISTS `blog`;
+
 CREATE TABLE `blog` (
                         `id` bigint NOT NULL AUTO_INCREMENT,
-                        `user_id` bigint NOT NULL COMMENT '作者ID',
+                        `user_id` bigint NOT NULL COMMENT '作者 ID',
                         `title` varchar(200) NOT NULL COMMENT '标题',
                         `content` text NOT NULL COMMENT '内容',
                         `summary` varchar(500) DEFAULT NULL COMMENT '摘要',
@@ -8,8 +10,9 @@ CREATE TABLE `blog` (
                         `view_count` int DEFAULT '0' COMMENT '浏览量',
                         `like_count` int DEFAULT '0' COMMENT '点赞数',
                         `comment_count` int DEFAULT '0' COMMENT '评论数',
-                        `status` tinyint DEFAULT '1' COMMENT '状态 1发布 0草稿',
+                        `status` tinyint DEFAULT '1' COMMENT '状态 1 发布 0 草稿',
                         `deleted` tinyint DEFAULT '0',
+                        `version` int DEFAULT '1' COMMENT '乐观锁版本号',  -- ← 新增这行
                         `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
                         `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                         PRIMARY KEY (`id`),

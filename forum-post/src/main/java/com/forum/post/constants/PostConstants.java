@@ -42,20 +42,10 @@ public class PostConstants {
     /**
      * 目标点赞数缓存前缀
      * 数据结构：String
-     * 完整Key：like:count:{targetType}:{targetId}
+     * 完整 Key：like:count:{targetType}:{targetId}
      * 用途：存储目标的点赞计数
      */
     public static final String REDIS_KEY_LIKE_COUNT = "like:count:";
-    
-    /**
-     * 待同步点赞数据
-     * 数据结构：Hash
-     * 完整Key：like:pending:sync
-     * 字段：userId:targetType:targetId
-     * 值：1点赞/-1取消
-     * 用途：存储待同步到数据库的点赞记录
-     */
-    public static final String REDIS_KEY_LIKE_PENDING_SYNC = "like:pending:sync";
     
     /**
      * 博客浏览量缓存前缀
@@ -107,16 +97,11 @@ public class PostConstants {
     public static final Long LOCK_EXPIRE_TIME = 10L;
 
     // ==================== 同步配置 ====================
-    
+        
     /**
-     * 批量同步阈值：100条
+     * 批量同步阈值：100 条（保留用于浏览量同步）
      */
     public static final Integer SYNC_BATCH_SIZE = 100;
-    
-    /**
-     * 同步间隔：30秒
-     */
-    public static final Long SYNC_INTERVAL = 30000L;
 
     // ==================== 分页默认值 ====================
     

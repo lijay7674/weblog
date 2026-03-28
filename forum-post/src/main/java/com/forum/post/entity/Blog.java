@@ -74,12 +74,6 @@ public class Blog implements Serializable {
     private Integer deleted;
 
     /**
-     * 乐观锁版本号
-     */
-    @Version
-    private Integer version;
-
-    /**
      * 创建时间
      */
     @TableField(fill = FieldFill.INSERT)
@@ -90,4 +84,10 @@ public class Blog implements Serializable {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
+
+    /**
+     * 乐观锁版本号
+     */
+    @Version
+    private Integer version;
 }

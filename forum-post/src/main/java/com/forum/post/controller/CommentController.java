@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "评论管理", description = "评论相关接口")
 @RestController
-@RequestMapping("/api/post/comment")
+@RequestMapping("/comment")
 @RequiredArgsConstructor
 public class CommentController {
 

@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     // ==================== Exchange 定义 ====================
-    
+
     /**
      * 帖子模块交换机 - Topic 类型
      */
@@ -30,19 +30,18 @@ public class RabbitMQConfig {
 
     // ==================== RoutingKey 定义 ====================
     
-    public static final String ROUTING_KEY_LIKE_SYNC = "post.like.sync";
-    public static final String ROUTING_KEY_COMMENT_NEW = "post.comment.new";
-    public static final String ROUTING_KEY_VIEW_SYNC = "post.view.sync";
+    public static final String ROUTING_KEY_LIKE_SYNC = "post.like.sync";  // 点赞消息
+    public static final String ROUTING_KEY_COMMENT_NEW = "post.comment.new";  // 评论消息
+    public static final String ROUTING_KEY_VIEW_SYNC = "post.view.sync";  //览量消息
     public static final String ROUTING_KEY_SEARCH_SYNC = "post.search.sync";
     public static final String ROUTING_KEY_DLX_LIKE = "dlx.post.like";
 
     // ==================== Queue 定义 ====================
     
-    public static final String QUEUE_LIKE_SYNC = "queue.post.like.sync";
-    public static final String QUEUE_COMMENT_NOTIFY = "queue.post.comment.notify";
-    public static final String QUEUE_VIEW_SYNC = "queue.post.view.sync";
-    public static final String QUEUE_DLX_LIKE = "queue.dlx.post.like";
-
+    public static final String QUEUE_LIKE_SYNC = "queue.post.like.sync";  // 点赞同步队列
+    public static final String QUEUE_COMMENT_NOTIFY = "queue.post.comment.notify";  // 评论通知队列
+    public static final String QUEUE_VIEW_SYNC = "queue.post.view.sync";  //览量同步队列
+    public static final String QUEUE_DLX_LIKE = "queue.dlx.post.like";  //赞死信队列
     // ==================== Exchange Bean ====================
     
     @Bean
@@ -145,9 +144,9 @@ public class RabbitMQConfig {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(jsonMessageConverter());
-        factory.setBatchListener(true);
-        factory.setBatchSize(100);  // 每批最多100条消息
-        factory.setConsumerBatchEnabled(true);
+        factory.setBatchListener(true);        // 启用批量监听
+        factory.setBatchSize(100);             // 每批最多 100 条
+        factory.setConsumerBatchEnabled(true); // 开启批量消费
         return factory;
     }
 }

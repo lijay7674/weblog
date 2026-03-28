@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 @Tag(name = "点赞管理", description = "点赞相关接口")
 @RestController
-@RequestMapping("/api/post/like")
+@RequestMapping("/like")
 @RequiredArgsConstructor
 public class LikeController {
 
