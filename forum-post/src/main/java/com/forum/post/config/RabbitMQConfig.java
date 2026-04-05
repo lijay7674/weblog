@@ -33,7 +33,7 @@ public class RabbitMQConfig {
     public static final String ROUTING_KEY_LIKE_SYNC = "post.like.sync";  // 点赞消息
     public static final String ROUTING_KEY_COMMENT_NEW = "post.comment.new";  // 评论消息
     public static final String ROUTING_KEY_VIEW_SYNC = "post.view.sync";  //览量消息
-    public static final String ROUTING_KEY_SEARCH_SYNC = "post.search.sync";
+    public static final String ROUTING_KEY_SEARCH_SYNC = "post.search.sync";  // 搜索同步消息
     public static final String ROUTING_KEY_DLX_LIKE = "dlx.post.like";
 
     // ==================== Queue 定义 ====================

@@ -15,3 +15,40 @@ spring:
   config:
     import: nacos:forum-search.yaml
 
+# Elasticsearch 配置
+elasticsearch:
+  index:
+    name: blog_search
+  # ES 连接配置（通过 Spring Data Elasticsearch 自动配置）
+  # uris: localhost:9200
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.forum.search.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+# 搜索同步配置
+search:
+  sync:
+    # 全量重建批次大小
+    batch-size: 500
+    # 断点续传Redis Key前缀
+    checkpoint-key: search:sync:checkpoint
+    # 同步状态Key
+    status-key: search:sync:status
+
+# Actuator 健康检查配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.forum.search: debug
+

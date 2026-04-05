@@ -54,7 +54,7 @@ public class PostConstants {
      * 用途：存储博客浏览量计数
      */
     public static final String REDIS_KEY_BLOG_VIEW_COUNT = "blog:view:count:";
-    
+
     /**
      * 待同步浏览量
      * 数据结构：Hash

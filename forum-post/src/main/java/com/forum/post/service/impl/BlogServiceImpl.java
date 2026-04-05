@@ -14,12 +14,14 @@ import com.forum.post.dto.BlogUpdateRequest;
 import com.forum.post.entity.Blog;
 import com.forum.post.mapper.BlogMapper;
 import com.forum.post.mq.ViewEvent;
+import com.forum.post.mq.SearchSyncEvent;
 import com.forum.post.service.BlogService;
 import com.forum.post.service.LikeService;
 import com.forum.post.vo.BlogDetailVO;
 import com.forum.post.vo.BlogListVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,7 @@ public class BlogServiceImpl implements BlogService {
     private final LikeService likeService;
     private final StringRedisTemplate stringRedisTemplate;
     private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -60,6 +63,12 @@ public class BlogServiceImpl implements BlogService {
         
         blogMapper.insert(blog);
         log.info("创建博客成功，userId: {}, blogId: {}", userId, blog.getId());
+        
+        // 发送搜索同步消息（仅同步已发布的博客）
+        if (blog.getStatus() == PostConstants.BLOG_STATUS_PUBLISHED) {
+            sendSearchSyncEvent(SearchSyncEvent.createEvent(blog.getId(), userId));
+        }
+        
         return blog.getId();
     }
 
@@ -81,6 +90,13 @@ public class BlogServiceImpl implements BlogService {
         
         blogMapper.updateById(blog);
         log.info("更新博客成功，userId: {}, blogId: {}", userId, blogId);
+        
+        // 发送搜索同步消息（如果博客已发布，更新索引；如果从发布改为草稿，从索引删除）
+        if (blog.getStatus() == PostConstants.BLOG_STATUS_PUBLISHED) {
+            sendSearchSyncEvent(SearchSyncEvent.updateEvent(blogId, userId));
+        } else {
+            sendSearchSyncEvent(SearchSyncEvent.deleteEvent(blogId));
+        }
     }
 
     @Override
@@ -94,34 +110,43 @@ public class BlogServiceImpl implements BlogService {
         // 逻辑删除
         blogMapper.deleteById(blogId);
         log.info("删除博客成功，userId: {}, blogId: {}", userId, blogId);
+        
+        // 发送搜索同步消息（从索引中删除）
+        sendSearchSyncEvent(SearchSyncEvent.deleteEvent(blogId));
     }
 
     @Override
     public BlogDetailVO getBlogDetail(Long blogId, Long userId) {
-        // 先从缓存获取
         String cacheKey = PostConstants.REDIS_KEY_BLOG_DETAIL + blogId;
-        String cached = stringRedisTemplate.opsForValue().get(cacheKey);
         
-        // 获取博客信息
-        Blog blog = blogMapper.selectById(blogId);
-        if (blog == null || blog.getDeleted() == 1) {
-            throw new BusinessException("博客不存在");
+        // 1. 先从缓存获取 Blog 实体数据
+        Blog blog = getBlogFromCache(cacheKey);
+        
+        if (blog == null) {
+            // 2. 缓存未命中，从数据库查询
+            blog = blogMapper.selectById(blogId);
+            if (blog == null || blog.getDeleted() == 1) {
+                throw new BusinessException("博客不存在");
+            }
+            
+            // 3. 将 Blog 写入缓存
+            saveBlogToCache(cacheKey, blog);
         }
         
-        // 转换为VO
+        // 4. 转换为VO（包含用户特定数据 isLiked）
         BlogDetailVO vo = convertToDetailVO(blog);
-        
-        // 查询点赞状态
+
+        // 5. 查询点赞状态（用户特定数据，不缓存）
         if (userId != null) {
             Boolean isLiked = likeService.checkUserLiked(userId, blogId, PostConstants.TARGET_TYPE_BLOG);
             vo.setIsLiked(isLiked);
         } else {
             vo.setIsLiked(false);
         }
-        
-        // 增加浏览量（异步）
+
+        // 6. 增加浏览量（异步）
         incrementViewCount(blogId);
-        
+
         return vo;
     }
 
@@ -271,6 +296,46 @@ public class BlogServiceImpl implements BlogService {
     }
 
     /**
+     * 从缓存获取博客数据
+     * @param cacheKey 缓存Key
+     * @return Blog对象，缓存未命中或反序列化失败返回null
+     */
+    private Blog getBlogFromCache(String cacheKey) {
+        try {
+            String cached = stringRedisTemplate.opsForValue().get(cacheKey);
+            if (cached != null) {
+                log.debug("缓存命中: {}", cacheKey);
+                return objectMapper.readValue(cached, Blog.class);
+            }
+        } catch (Exception e) {
+            // 缓存反序列化失败，记录日志并返回null，触发数据库查询
+            log.warn("缓存反序列化失败，key: {}, error: {}", cacheKey, e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 将博客数据写入缓存
+     * @param cacheKey 缓存Key
+     * @param blog Blog对象
+     */
+    private void saveBlogToCache(String cacheKey, Blog blog) {
+        try {
+            String json = objectMapper.writeValueAsString(blog);
+            stringRedisTemplate.opsForValue().set(
+                cacheKey,
+                json,
+                PostConstants.CACHE_BLOG_DETAIL_TTL,
+                TimeUnit.SECONDS
+            );
+            log.debug("缓存写入成功: {}", cacheKey);
+        } catch (Exception e) {
+            // 缓存写入失败不影响主流程，记录日志即可
+            log.error("缓存写入失败，key: {}, error: {}", cacheKey, e.getMessage());
+        }
+    }
+
+    /**
      * 转换为详情VO
      */
     private BlogDetailVO convertToDetailVO(Blog blog) {
@@ -307,5 +372,23 @@ public class BlogServiceImpl implements BlogService {
         vo.setCreateTime(blog.getCreateTime());
         // username 和 avatar 需要通过用户服务获取，这里暂不设置
         return vo;
+    }
+
+    /**
+     * 发送搜索同步事件
+     */
+    private void sendSearchSyncEvent(SearchSyncEvent event) {
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE_FORUM_POST,
+                    RabbitMQConfig.ROUTING_KEY_SEARCH_SYNC,
+                    event
+            );
+            log.debug("发送搜索同步事件成功: blogId={}, operationType={}", 
+                    event.getBlogId(), event.getOperationType());
+        } catch (Exception e) {
+            // 发送失败不影响主流程，记录日志
+            log.error("发送搜索同步事件失败: blogId={}", event.getBlogId(), e);
+        }
     }
 }
